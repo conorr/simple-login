@@ -8,7 +8,6 @@ const app = express();
 app.use(simpleJwtSessionAuth({
     getUserFn: getUser,
     tokenKey: key.tokenKey,
-    userModelPrimaryKey: 'userId',
 }));
 
 app.listen(8080 || process.env.PORT, () => {

@@ -28,7 +28,11 @@ function comparePassword(candidatePassword, password) {
 }
 
 function simpleJwtSessionAuth(config) {
-    const { getUserFn, tokenKey, userModelPrimaryKey } = config;
+    const defaultConfig = {
+        userModelPrimaryKey: 'userId',
+    };
+    const mergedConfig = Object.assign(defaultConfig, config);
+    const { getUserFn, tokenKey, userModelPrimaryKey } = mergedConfig;
 
     const app = express();
 
