@@ -6,8 +6,12 @@ const cookieParser = require('cookie-parser');
 
 const SESSION_COOKIE_KEY = 'SESSIONID';
 
+function isSpecialAuthPath(reqPath) {
+    return ['/login', '/signin', '/logout'].includes(reqPath);
+}
+
 function authenticateRoutes(req, res, next) {
-    if (req.user) {
+    if (isSpecialAuthPath(req.path) || req.user) {
         next();
     } else {
         res.redirect('/login');
@@ -56,11 +60,7 @@ function simpleJwtSessionAuth(config) {
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
     app.use(getUserFromToken);
-    app.use('/app', authenticateRoutes);
-
-    app.get('/', (req, res) => {
-        res.redirect('/app');
-    });
+    app.use('/', authenticateRoutes);
 
     app.get('/login', (req, res) => {
         res.sendFile(path.join(__dirname, '/views/login.html'));
@@ -69,10 +69,6 @@ function simpleJwtSessionAuth(config) {
     app.get('/logout', (req, res) => {
         res.clearCookie(SESSION_COOKIE_KEY);
         res.redirect('/login');
-    });
-
-    app.get('/app', (req, res) => {
-        res.send('<html><body><h1>Hello World!</h1></body></html>');
     });
 
     app.get('/signin', (req, res) => res.redirect('/login'));
