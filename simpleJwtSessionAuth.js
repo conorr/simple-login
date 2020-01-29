@@ -75,6 +75,8 @@ function simpleJwtSessionAuth(config) {
         res.send('<html><body><h1>Hello World!</h1></body></html>');
     });
 
+    app.get('/signin', (req, res) => res.redirect('/login'));
+
     app.post('/signin', (req, res) => {
         const user = getUserFn(req.body[userModelPrimaryKey]);
 
