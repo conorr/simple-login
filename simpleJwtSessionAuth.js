@@ -24,8 +24,7 @@ function comparePassword(candidatePassword, password) {
     return new Promise((resolve) => {
         bcrypt.compare(candidatePassword, password, (err, isMatch) => {
             if (err) {
-                console.log(err);
-                resolve(false);
+                reject(err);
             } else {
                 resolve(isMatch);
             }
@@ -92,19 +91,21 @@ function simpleJwtSessionAuth(config) {
             return;
         }
 
-        comparePassword(req.body.password, user.password).then((isMatch) => {
-            if (isMatch) {
-                const token = jwt.sign({
-                    [userModelPrimaryKey]: user[userModelPrimaryKey],
-                }, tokenKey);
-                res.cookie(SESSION_COOKIE_KEY, token, { httpOnly: true, secure: false });
-                res.redirect('/app');
-            } else {
-                res.status(400).json({
-                    message: 'Invalid Password/Username',
-                });
-            }
-        });
+        comparePassword(req.body.password, user.password)
+            .then((isMatch) => {
+                if (isMatch) {
+                    const token = jwt.sign({
+                        [userModelPrimaryKey]: user[userModelPrimaryKey],
+                    }, tokenKey);
+                    res.cookie(SESSION_COOKIE_KEY, token, { httpOnly: true, secure: false });
+                    res.redirect('/app');
+                } else {
+                    res.status(400).json({
+                        message: 'Invalid Password/Username',
+                    });
+                }
+            })
+            .catch((err) => { throw err; });
     });
 
     console.log(`[simple-jwt-session-auth]: Registration complete; mounted at ${route}`);
