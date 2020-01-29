@@ -28,7 +28,7 @@ function comparePassword(candidatePassword, password) {
 }
 
 function simpleJwtSessionAuth(config) {
-    const { getUserFn, tokenKey } = config;
+    const { getUserFn, tokenKey, userModelPrimaryKey } = config;
 
     const app = express();
 
@@ -37,7 +37,7 @@ function simpleJwtSessionAuth(config) {
             const token = req.cookies[SESSION_COOKIE_KEY];
             jwt.verify(token, tokenKey, (err, payload) => {
                 if (payload) {
-                    const user = getUserFn(payload.userId);
+                    const user = getUserFn(payload[userModelPrimaryKey]);
                     req.user = user;
                     next();
                 } else {
@@ -72,7 +72,7 @@ function simpleJwtSessionAuth(config) {
     });
 
     app.post('/signin', (req, res) => {
-        const user = getUserFn(req.body.userId);
+        const user = getUserFn(req.body[userModelPrimaryKey]);
 
         if (!user) {
             res.status(400).json({
@@ -83,7 +83,9 @@ function simpleJwtSessionAuth(config) {
 
         comparePassword(req.body.password, user.password).then((isMatch) => {
             if (isMatch) {
-                const token = jwt.sign({ userId: user.userId }, tokenKey);
+                const token = jwt.sign({
+                    [userModelPrimaryKey]: user[userModelPrimaryKey],
+                }, tokenKey);
                 res.cookie(SESSION_COOKIE_KEY, token, { httpOnly: true, secure: false });
                 res.redirect('/app');
             } else {
