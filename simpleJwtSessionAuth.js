@@ -6,8 +6,10 @@ const cookieParser = require('cookie-parser');
 
 const SESSION_COOKIE_KEY = 'SESSIONID';
 
+const SPECIAL_AUTH_PATHS = ['/login', '/signin', '/logout'];
+
 function isSpecialAuthPath(reqPath) {
-    return ['/login', '/signin', '/logout'].includes(reqPath);
+    return SPECIAL_AUTH_PATHS.includes(reqPath);
 }
 
 function authenticateRoutes(req, res, next) {
@@ -34,9 +36,16 @@ function comparePassword(candidatePassword, password) {
 function simpleJwtSessionAuth(config) {
     const defaultConfig = {
         userModelPrimaryKey: 'userId',
+        route: '/',
     };
+
     const mergedConfig = Object.assign(defaultConfig, config);
-    const { getUserFn, tokenKey, userModelPrimaryKey } = mergedConfig;
+    const {
+        getUserFn,
+        tokenKey,
+        route,
+        userModelPrimaryKey,
+    } = mergedConfig;
 
     const app = express();
 
@@ -60,7 +69,7 @@ function simpleJwtSessionAuth(config) {
     app.use(cookieParser());
     app.use(express.urlencoded({ extended: true }));
     app.use(getUserFromToken);
-    app.use('/', authenticateRoutes);
+    app.use(route, authenticateRoutes);
 
     app.get('/login', (req, res) => {
         res.sendFile(path.join(__dirname, '/views/login.html'));
@@ -97,6 +106,9 @@ function simpleJwtSessionAuth(config) {
             }
         });
     });
+
+    console.log(`[simple-jwt-session-auth]: Registration complete; mounted at ${route}`);
+    console.log(`[simple-jwt-session-auth]: Special auth paths: ${JSON.stringify(SPECIAL_AUTH_PATHS)}`);
 
     return app;
 }
