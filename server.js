@@ -1,11 +1,12 @@
+const debug = require('debug')('simple-login:server');
 const express = require('express');
-const simpleJwtSessionAuth = require('./simpleJwtSessionAuth');
+const simpleLogin = require('./simpleLogin');
 const getUser = require('./getUser');
 const key = require('./key');
 
 const app = express();
 
-app.use(simpleJwtSessionAuth({
+app.use(simpleLogin({
     getUserFn: getUser,
     tokenKey: key.tokenKey,
 }));
@@ -15,5 +16,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(8080 || process.env.PORT, () => {
-    console.log('Listening on port 8080...');
+    debug('Listening on port 8080...');
 });
